@@ -17,12 +17,14 @@ RUN mv spark-3.1.1-bin-hadoop3.2/ /opt/spark
 WORKDIR /Spark
 RUN curl https://jdbc.postgresql.org/download/postgresql-42.2.23.jar --output postgresql-42.2.23.jar
 
+# WORKDIR /sparklib
+# COPY pyspark-3.1.2.tar.gz .
+# RUN tar xvf pyspark-3.1.2.tar.gz
+# RUN pip3 install setup.py
+
 WORKDIR /app
 
-COPY main.py /app
-COPY requirements.txt /app
+COPY . /app
 
-RUN pip3 install -r requirements.txt
+RUN pip3 install --no-cache-dir -r requirements.txt
 RUN pyspark --packages org.postgresql:postgresql
-
-CMD ["python3", "main.py"]

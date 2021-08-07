@@ -1,10 +1,36 @@
-version: "2.0"
+version: "3"
 services:
-  app:
-    container_name: test
+  spark:
+    container_name: spark
     build:
       dockerfile: Dockerfile
       context: .
     external_links:
       - postgres:pgsql
-    network_mode: bridge
+    entrypoint: 
+      - python3
+      - -u
+      - main.py
+    networks: 
+      - rabbitmq-network
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      
+  rabbitmq:
+    image: rabbitmq:3.9-management
+    container_name: rabbitmq
+    ports: 
+      - 5762:5672
+      - 15672:15672
+    networks:
+      - rabbitmq-network
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 15s
+      timeout: 15s
+      retries: 5
+
+networks:
+  rabbitmq-network:
+    driver: bridge
