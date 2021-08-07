@@ -7,12 +7,31 @@ services:
       context: .
     external_links:
       - postgres:pgsql
+      - rabbitmq:localhost
     entrypoint: 
       - python3
       - -u
       - main.py
-    networks: 
-      - rabbitmq-network
+    network_mode:
+      bridge
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  resource-producer:
+    container_name: resource-producer
+    build:
+      dockerfile: Dockerfile
+      context: .
+    external_links:
+      - postgres:pgsql
+      - rabbitmq:localhost
+    entrypoint: 
+      - python3
+      - -u
+      - sending_resource.py
+    network_mode:
+      bridge
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -23,14 +42,10 @@ services:
     ports: 
       - 5762:5672
       - 15672:15672
-    networks:
-      - rabbitmq-network
+    network_mode:
+      bridge
     healthcheck:
       test: rabbitmq-diagnostics -q ping
-      interval: 15s
+      interval: 30s
       timeout: 15s
       retries: 5
-
-networks:
-  rabbitmq-network:
-    driver: bridge

@@ -1,27 +1,29 @@
-# from pyspark.sql import SparkSession
+from pyspark.sql import SparkSession
 import pika, sys, os
 import time
 from multiprocessing import Process, process
+import requests
 
 def spark_process(topic , statement):
     print("start process: {}".format(topic))
-    # spark = SparkSession.builder\
-    #     .config("spark.jars", "/Spark/postgresql-42.2.23.jar")\
-    #     .config("spark.driver.extraClassPath", "/Spark/postgresql-42.2.23.jar")\
-    #     .getOrCreate()
+    spark = SparkSession.builder\
+        .config("spark.jars", "/Spark/postgresql-42.2.23.jar")\
+        .config("spark.driver.extraClassPath", "/Spark/postgresql-42.2.23.jar")\
+        .getOrCreate()
 
-    # data = spark.read.format("jdbc") \
-    #     .option("driver", "org.postgresql.Driver") \
-    #     .option("url", "jdbc:postgresql://pgsql:5432/postgres") \
-    #     .option("query", statement) \
-    #     .option("user", "postgres") \
-    #     .option("password", "") \
-    #     .load()
-    # print(data)
+    data = spark.read.format("jdbc") \
+        .option("driver", "org.postgresql.Driver") \
+        .option("url", "jdbc:postgresql://pgsql:5432/postgres") \
+        .option("query", statement) \
+        .option("user", "postgres") \
+        .option("password", "") \
+        .load()
+    print(data)
 
 
 def main():
-    connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+    conn_param = pika.ConnectionParameters(host='localhost')
+    connection = pika.BlockingConnection(conn_param)
     channel = connection.channel()
 
     channel.queue_declare(queue='hello')
@@ -34,16 +36,10 @@ def main():
     print(' [*] Waiting for messages. To exit press CTRL+C')
     channel.start_consuming()
 
-spark_process(
-    "summary total cre",
-    "select loan_id,sum(amount) from ntbx_datawarehouse.raw_cal_service_loan_payment_bucket_cre rcslpbc group by loan_id "
-)
-
-
 if __name__ == '__main__':
     try:
         topic = "summary total cre"
-        statment = "select loan_id,sum(amount) from ntbx_datawarehouse.raw_cal_service_loan_payment_bucket_cre rcslpbc group by loan_id "
+        statment = "select employee_id , sum(salary) from public.employee group by employee_id"
         p1 = Process(target=main)
         p2 = Process(target=spark_process, args=(topic, statment))
         p1.start()
