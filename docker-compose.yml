@@ -1,0 +1,10 @@
+version: "2.0"
+services:
+  app:
+    container_name: test
+    build:
+      dockerfile: Dockerfile
+      context: .
+    external_links:
+      - postgres:pgsql
+    network_mode: bridge
