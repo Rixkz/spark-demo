@@ -5,3 +5,4 @@ pika
 requests
 docker
 six
+hurry.filesize

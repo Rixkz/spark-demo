@@ -4,7 +4,7 @@ import time
 from multiprocessing import Process, process
 
 def spark_process(topic , statement):
-    for x in range(0, 10):
+    for x in range(0, 100):
         print("start process: {}".format(topic))
         spark = SparkSession.builder\
             .config("spark.jars", "/Spark/postgresql-42.2.23.jar")\
@@ -31,7 +31,8 @@ def main():
     channel.queue_declare(queue='memory_resource')
 
     def callback(ch, method, properties, body):
-        print(" [x] Received %r" % body)
+        routing_key = method.routing_key
+        print(" [x] Received {0}: {1}".format(routing_key, body.decode("utf-8") ))
 
     channel.basic_consume(queue='cpu_resource', on_message_callback=callback, auto_ack=True)
     channel.basic_consume(queue='memory_resource', on_message_callback=callback, auto_ack=True)

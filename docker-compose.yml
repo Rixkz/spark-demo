@@ -22,6 +22,10 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 1000M
 
   resource-producer:
     container_name: resource-producer
