@@ -14,6 +14,11 @@ services:
       - main.py
     network_mode:
       bridge
+    healthcheck:
+      test: ["CMD", "echo"]
+      interval: 2s
+      timeout: 5s
+      retries: 2
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -30,11 +35,16 @@ services:
       - python3
       - -u
       - sending_resource.py
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
     network_mode:
       bridge
     depends_on:
       rabbitmq:
         condition: service_healthy
+      spark:
+        condition: service_healthy
+      
       
   rabbitmq:
     image: rabbitmq:3.9-management

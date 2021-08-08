@@ -2,23 +2,24 @@ from pyspark.sql import SparkSession
 import pika, sys, os
 import time
 from multiprocessing import Process, process
-import requests
 
 def spark_process(topic , statement):
-    print("start process: {}".format(topic))
-    spark = SparkSession.builder\
-        .config("spark.jars", "/Spark/postgresql-42.2.23.jar")\
-        .config("spark.driver.extraClassPath", "/Spark/postgresql-42.2.23.jar")\
-        .getOrCreate()
+    for x in range(0, 10):
+        print("start process: {}".format(topic))
+        spark = SparkSession.builder\
+            .config("spark.jars", "/Spark/postgresql-42.2.23.jar")\
+            .config("spark.driver.extraClassPath", "/Spark/postgresql-42.2.23.jar")\
+            .getOrCreate()
 
-    data = spark.read.format("jdbc") \
-        .option("driver", "org.postgresql.Driver") \
-        .option("url", "jdbc:postgresql://pgsql:5432/postgres") \
-        .option("query", statement) \
-        .option("user", "postgres") \
-        .option("password", "") \
-        .load()
-    print(data)
+        data = spark.read.format("jdbc") \
+            .option("driver", "org.postgresql.Driver") \
+            .option("url", "jdbc:postgresql://pgsql:5432/postgres") \
+            .option("query", statement) \
+            .option("user", "postgres") \
+            .option("password", "") \
+            .load()
+        print(data)
+        time.sleep(1)
 
 
 def main():
@@ -26,12 +27,14 @@ def main():
     connection = pika.BlockingConnection(conn_param)
     channel = connection.channel()
 
-    channel.queue_declare(queue='hello')
+    channel.queue_declare(queue='cpu_resource')
+    channel.queue_declare(queue='memory_resource')
 
     def callback(ch, method, properties, body):
         print(" [x] Received %r" % body)
 
-    channel.basic_consume(queue='hello', on_message_callback=callback, auto_ack=True)
+    channel.basic_consume(queue='cpu_resource', on_message_callback=callback, auto_ack=True)
+    channel.basic_consume(queue='memory_resource', on_message_callback=callback, auto_ack=True)
 
     print(' [*] Waiting for messages. To exit press CTRL+C')
     channel.start_consuming()

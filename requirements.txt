@@ -3,3 +3,5 @@ psycopg2-binary
 pyspark
 pika
 requests
+docker
+six
