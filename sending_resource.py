@@ -5,22 +5,23 @@ import docker
 from hurry.filesize import size
 
 def producer():
-    connection = pika.BlockingConnection(
-        pika.ConnectionParameters(host='localhost'))
+    conn_param = pika.ConnectionParameters(host='localhost')
+    connection = pika.BlockingConnection(conn_param)
     channel = connection.channel()
-    channel.queue_declare(queue='cpu_resource')
-    channel.queue_declare(queue='memory_resource')
 
-    client = docker.from_env()
+    channel.queue_declare(queue='cpu_percent_usage')
+    channel.queue_declare(queue='memory_mb_usage')
+
+    docker_client = docker.from_env()
     for x in range(0, 100):
-        for container in client.containers.list():
-            if container.name == 'spark':
-                docker_information = container.stats(stream=False)
+        for container_object in docker_client.containers.list():
+            if container_object.name == 'spark':
+                docker_information = container_object.stats(stream=False)
                 cpu_stats = json.dumps(calculate_cpu_percent(docker_information))
                 memory_stats = docker_information["memory_stats"]
-                channel.basic_publish(exchange='', routing_key='cpu_resource', body=cpu_stats)
-                channel.basic_publish(exchange='', routing_key='memory_resource', body=size(memory_stats["usage"]))
-                print(" [x] Sent container resource.")   
+                channel.basic_publish(exchange='', routing_key='cpu_percent_usage', body=cpu_stats)
+                channel.basic_publish(exchange='', routing_key='memory_mb_usage', body=size(memory_stats["usage"]))
+                print(" [x] Sent container usage.")   
         time.sleep(1)
     connection.close()
 

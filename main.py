@@ -21,21 +21,20 @@ def spark_process(topic , statement):
         print(data)
         time.sleep(1)
 
-
 def main():
     conn_param = pika.ConnectionParameters(host='localhost')
     connection = pika.BlockingConnection(conn_param)
     channel = connection.channel()
 
-    channel.queue_declare(queue='cpu_resource')
-    channel.queue_declare(queue='memory_resource')
+    channel.queue_declare(queue='cpu_percent_usage')
+    channel.queue_declare(queue='memory_mb_usage')
 
     def callback(ch, method, properties, body):
         routing_key = method.routing_key
         print(" [x] Received {0}: {1}".format(routing_key, body.decode("utf-8") ))
 
-    channel.basic_consume(queue='cpu_resource', on_message_callback=callback, auto_ack=True)
-    channel.basic_consume(queue='memory_resource', on_message_callback=callback, auto_ack=True)
+    channel.basic_consume(queue='cpu_percent_usage', on_message_callback=callback, auto_ack=True)
+    channel.basic_consume(queue='memory_mb_usage', on_message_callback=callback, auto_ack=True)
 
     print(' [*] Waiting for messages. To exit press CTRL+C')
     channel.start_consuming()
