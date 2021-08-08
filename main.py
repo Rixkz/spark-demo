@@ -1,7 +1,7 @@
 from pyspark.sql import SparkSession
 import pika, sys, os
 import time
-from multiprocessing import Process, process
+from multiprocessing import Process
 
 def spark_process(topic , statement):
     for x in range(0, 100):
